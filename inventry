@@ -1,0 +1,11 @@
+[windows]
+192.168.170.10
+
+[windows:vars]
+ansible_user=Administrator
+ansible_password=Ashish@16
+ansible_connection=winrm
+ansible_port=5985
+ansible_winrm_scheme=http
+ansible_winrm_transport=ntlm
+ansible_winrm_server_cert_validation=ignore
