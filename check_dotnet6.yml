@@ -1,0 +1,20 @@
+- name: Check .NET Runtime Installed
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+    - name: Check installed runtimes
+      win_shell: dotnet --list-runtimes
+      register: dotnet_output
+
+    - name: Set fact if any ASP.NET runtime exists
+      set_fact:
+        dotnet_installed: "{{ 'Microsoft.AspNetCore.App' in dotnet_output.stdout }}"
+
+    - name: Show result
+      debug:
+        msg: "ASP.NET Runtime Installed: {{ dotnet_installed }}"
+
+    - name: Include install if not present
+      include_tasks: install_dotnet.yml
+      when: not dotnet_installed

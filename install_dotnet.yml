@@ -1,0 +1,26 @@
+- name: Install .NET Hosting Bundle
+  hosts: windows
+  gather_facts: no
+
+  vars:
+    dotnet_installer: "C:\\temp\\dotnet-hosting.exe"
+
+  tasks:
+    - name: Create temp directory
+      win_file:
+        path: C:\temp
+        state: directory
+
+    - name: Download .NET Hosting Bundle
+      win_get_url:
+        url: https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/6.0.36/aspnetcore-runtime-6.0.36-win-x64.exe
+        dest: "{{ dotnet_installer }}"
+
+    - name: Install .NET Hosting Bundle silently
+      win_package:
+        path: "{{ dotnet_installer }}"
+        arguments: /quiet /norestart
+        state: present
+
+    - name: Restart IIS
+      win_shell: iisreset

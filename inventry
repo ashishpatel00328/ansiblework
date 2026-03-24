@@ -2,8 +2,8 @@
 192.168.170.10
 
 [windows:vars]
-ansible_user=Administrator
-ansible_password=Ashish@16
+ansible_user={{ lookup('env','WIN_USER') }}
+ansible_password={{ lookup('env','WIN_PASS') }}
 ansible_connection=winrm
 ansible_port=5985
 ansible_winrm_scheme=http

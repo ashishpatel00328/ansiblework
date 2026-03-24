@@ -1,0 +1,52 @@
+- name: Setup IIS and .NET Hosting Bundle
+  hosts: windows
+  gather_facts: no
+
+  vars:
+    dotnet_installer: "C:\\temp\\dotnet-hosting.exe"
+
+  tasks:
+    - name: Install IIS (Web Server)
+      win_feature:
+        name:
+          - Web-Server
+          - Web-WebServer
+          - Web-Common-Http
+          - Web-Default-Doc
+          - Web-Static-Content
+          - Web-Http-Errors
+          - Web-App-Dev
+          - Web-Asp-Net45
+          - Web-Net-Ext45
+          - Web-ISAPI-Ext
+          - Web-ISAPI-Filter
+          - Web-Mgmt-Tools
+        state: present
+        include_management_tools: yes
+      register: iis_install
+
+    - name: Reboot if required after IIS install
+      win_reboot:
+        msg: "Reboot after IIS installation"
+      when: iis_install.reboot_required
+
+    - name: Create temp directory
+      win_file:
+        path: C:\temp
+        state: directory
+
+    - name: Download .NET Hosting Bundle
+      win_get_url:
+        url: https://aka.ms/dotnet/6.0/dotnet-hosting-win.exe
+        dest: "{{ dotnet_installer }}"
+
+
+    - name: Install .NET Hosting Bundle silently
+      win_package:
+        path: "{{ dotnet_installer }}"
+        arguments: /quiet /norestart
+        state: present
+
+
+    - name: Restart IIS
+      win_shell: iisreset
