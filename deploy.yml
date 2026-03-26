@@ -1,0 +1,70 @@
+- name: Deploy .NET App from Ansible to IIS
+  hosts: windows
+  gather_facts: no
+
+  vars:
+    site_name: "MyApp"
+    app_pool: "MyAppPool"
+    site_path: "C:\\inetpub\\myapp\\publish"
+    port: 8080
+    source_path: "/home/arp/ansible-code/publish"
+
+  tasks:
+
+
+  - name: Create IIS directory
+    win_file:
+      path: "{{ site_path }}"
+      state: directory
+
+
+  - name: Stop IIS Website
+    win_iis_website:
+      name: "{{ site_name }}"
+      state: stopped
+    ignore_errors: yes
+
+
+  - name: Remove old files
+    win_file:
+      path: "{{ site_path }}"
+      state: absent
+
+  - name: Recreate directory
+    win_file:
+      path: "{{ site_path }}"
+      state: directory
+
+  - name: Copy publish folder to IIS
+    win_copy:
+      src: "{{ source_path }}"
+      dest: "{{ site_path }}"
+      remote_src: no
+
+
+  - name: Create App Pool
+    win_iis_webapppool:
+      name: "{{ app_pool }}"
+      state: started
+      attributes:
+        managedRuntimeVersion: ""
+
+
+  - name: Create or Start Website
+    win_iis_website:
+      name: "{{ site_name }}"
+      state: started
+      port: "{{ port }}"
+      physical_path: "{{ site_path }}"
+      application_pool: "{{ app_pool }}"
+
+  - name: Set IIS permissions
+    win_acl:
+      path: "{{ site_path }}"
+      user: "IIS_IUSRS"
+      rights: FullControl
+      type: allow
+      state: present
+
+  - name: Restart IIS
+    win_shell: iisreset
